@@ -1,20 +1,26 @@
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
+const express = require("express");
+const cors = require("cors");
+const expensesRouter = require("./routes/expenses");
 
-var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
+const app = express();
 
-var app = express();
+// Autorise le front en dev (Vite par défaut sur 5173)
+app.use(cors({ origin: "http://localhost:5173" }));
 
-app.use(logger('dev'));
+// Pour lire le JSON du body
 app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
+// Routes
+app.use("/api", expensesRouter);
 
-module.exports = app;
+// Petit middleware d’erreurs simple
+app.use((err, req, res, next) => {
+  console.error(err);
+  const status = err.status || 500;
+  res.status(status).json({ error: err.message || "Internal Server Error" });
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`API listening on http://localhost:${PORT}`);
+});
